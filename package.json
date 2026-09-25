@@ -1,31 +1,21 @@
 {
-  "name": "ai-data-analyst-frontend",
-  "private": true,
+  "name": "ai-data-analyst-backend",
   "version": "1.0.0",
+  "description": "Backend API for AI Data Analyst Agent",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
   },
   "dependencies": {
-    "clsx": "^2.1.1",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.2",
-    "lucide-react": "^0.441.0",
-    "papaparse": "^5.4.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "recharts": "^2.12.7",
-    "tailwind-merge": "^2.5.2"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.5",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.11",
-    "vite": "^5.4.5"
+    "cors": "^2.8.5",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "multer": "^1.4.5-lts.1",
+    "pdfkit": "^0.15.0",
+    "simple-statistics": "^7.8.7",
+    "xlsx": "^0.18.5"
   }
 }
