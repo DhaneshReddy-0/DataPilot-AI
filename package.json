@@ -1,0 +1,24 @@
+{
+  "name": "ai-data-analyst-agent-platform",
+  "version": "1.0.0",
+  "description": "Autonomous AI Data Analyst Agent built with Node.js and React",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start:backend": "npm --prefix backend start",
+    "start:frontend": "npm --prefix frontend run preview"
+  },
+  "keywords": [
+    "ai-agent",
+    "data-analyst",
+    "react",
+    "nodejs",
+    "forecasting",
+    "recharts",
+    "data-cleaning",
+    "pdf-generation"
+  ],
+  "author": "",
+  "license": "ISC"
+}

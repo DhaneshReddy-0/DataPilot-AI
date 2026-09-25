@@ -1,0 +1,29 @@
+OrderDate,Region,Category,Product,Sales,Profit,Quantity,Discount
+2024-01-05,North,Electronics,Pro Laptop 15,1200,300,2,0.05
+2024-01-08,South,Furniture,Ergonomic Desk Chair,350,80,1,0.1
+2024-01-12,East,Electronics,Wireless Headphones,220,75,3,0
+2024-01-15,West,Office Supplies,Mechanical Keyboard,110,35,2,0
+2024-01-19,North,Electronics,Ultra HD Monitor 27",450,110,1,0.1
+2024-01-23,East,Furniture,Standing Electric Desk,780,190,1,0.05
+2024-01-26,West,Electronics,Smart Watch Series 5,310,95,2,0.05
+2024-01-30,South,Office Supplies,Laser Printer Pro,290,-20,1,0.2
+2024-02-03,North,Electronics,Pro Laptop 15,1200,300,2,0.05
+2024-02-06,West,Furniture,Conference Table,1450,340,1,0.1
+2024-02-10,East,Electronics,Noise Cancelling Earbuds,180,60,2,0
+2024-02-14,South,Electronics,Tablet 11",650,160,1,0.05
+2024-02-18,North,Office Supplies,Document Scanner,320,85,2,0
+2024-02-22,West,Electronics,Pro Laptop 15,2400,620,4,0.1
+2024-02-27,East,Furniture,Ergonomic Desk Chair,,70,1,0.05
+2024-03-02,South,Electronics,Wireless Headphones,220,75,3,0
+2024-03-07,North,Furniture,Standing Electric Desk,820,210,1,0
+2024-03-12,East,Electronics,Ultra HD Monitor 27",900,220,2,0.05
+2024-03-16,West,Office Supplies,Mechanical Keyboard,165,52,3,0
+2024-03-21,South,Furniture,Filing Cabinet Steel,420,90,2,0.1
+2024-03-25,North,Electronics,Smart Watch Series 5,620,190,4,0.05
+2024-03-30,West,Electronics,Tablet 11",1300,310,2,0.1
+2024-04-04,East,Office Supplies,Laser Printer Pro,580,110,2,0.05
+2024-04-09,South,Electronics,Pro Laptop 15,1250,315,2,0.05
+2024-04-14,North,Furniture,Conference Table,1520,360,1,0.05
+2024-04-19,West,Electronics,Noise Cancelling Earbuds,270,90,3,0
+2024-04-24,East,Electronics,Ultra HD Monitor 27",1350,330,3,0.05
+2024-04-28,South,Furniture,Standing Electric Desk,800,195,1,0.05

@@ -1,0 +1,11 @@
+[
+  { "TransactionDate": "2024-02-01", "CustomerID": "CUST-801", "TransactionType": "Transfer", "Amount": 3200, "Balance": 14500, "Channel": "Mobile App", "IsFlaggedFraud": 0 },
+  { "TransactionDate": "2024-02-02", "CustomerID": "CUST-802", "TransactionType": "POS Purchase", "Amount": 145, "Balance": 3200, "Channel": "Debit Card", "IsFlaggedFraud": 0 },
+  { "TransactionDate": "2024-02-04", "CustomerID": "CUST-803", "TransactionType": "ATM Withdrawal", "Amount": 400, "Balance": 8900, "Channel": "ATM", "IsFlaggedFraud": 0 },
+  { "TransactionDate": "2024-02-05", "CustomerID": "CUST-804", "TransactionType": "Wire Transfer", "Amount": 95000, "Balance": 110000, "Channel": "Online Web", "IsFlaggedFraud": 1 },
+  { "TransactionDate": "2024-02-07", "CustomerID": "CUST-805", "TransactionType": "POS Purchase", "Amount": 89, "Balance": 4120, "Channel": "Debit Card", "IsFlaggedFraud": 0 },
+  { "TransactionDate": "2024-02-09", "CustomerID": "CUST-806", "TransactionType": "Online Shopping", "Amount": 480, "Balance": 6700, "Channel": "Credit Card", "IsFlaggedFraud": 0 },
+  { "TransactionDate": "2024-02-12", "CustomerID": "CUST-807", "TransactionType": "Transfer", "Amount": 1500, "Balance": 18200, "Channel": "Mobile App", "IsFlaggedFraud": 0 },
+  { "TransactionDate": "2024-02-14", "CustomerID": "CUST-808", "TransactionType": "POS Purchase", "Amount": 62, "Balance": 2350, "Channel": "Debit Card", "IsFlaggedFraud": 0 },
+  { "TransactionDate": "2024-02-18", "CustomerID": "CUST-809", "TransactionType": "International Wire", "Amount": 42000, "Balance": 48000, "Channel": "Branch", "IsFlaggedFraud": 1 }
+]

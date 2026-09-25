@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Company>
+  <Employees>
+    <Employee>
+      <EmployeeID>EMP-101</EmployeeID>
+      <Department>Engineering</Department>
+      <Role>Software Engineer</Role>
+      <Salary>115000</Salary>
+      <PerformanceRating>4.5</PerformanceRating>
+      <YearsAtCompany>3</YearsAtCompany>
+      <OverTime>No</OverTime>
+      <AttritionRisk>Low</AttritionRisk>
+    </Employee>
+    <Employee>
+      <EmployeeID>EMP-102</EmployeeID>
+      <Department>Sales</Department>
+      <Role>Account Executive</Role>
+      <Salary>85000</Salary>
+      <PerformanceRating>3.8</PerformanceRating>
+      <YearsAtCompany>2</YearsAtCompany>
+      <OverTime>Yes</OverTime>
+      <AttritionRisk>High</AttritionRisk>
+    </Employee>
+    <Employee>
+      <EmployeeID>EMP-103</EmployeeID>
+      <Department>Product</Department>
+      <Role>Product Manager</Role>
+      <Salary>130000</Salary>
+      <PerformanceRating>4.8</PerformanceRating>
+      <YearsAtCompany>5</YearsAtCompany>
+      <OverTime>No</OverTime>
+      <AttritionRisk>Low</AttritionRisk>
+    </Employee>
+    <Employee>
+      <EmployeeID>EMP-104</EmployeeID>
+      <Department>Marketing</Department>
+      <Role>Content Specialist</Role>
+      <Salary>65000</Salary>
+      <PerformanceRating>3.5</PerformanceRating>
+      <YearsAtCompany>1</YearsAtCompany>
+      <OverTime>No</OverTime>
+      <AttritionRisk>Medium</AttritionRisk>
+    </Employee>
+    <Employee>
+      <EmployeeID>EMP-105</EmployeeID>
+      <Department>Engineering</Department>
+      <Role>Tech Lead</Role>
+      <Salary>160000</Salary>
+      <PerformanceRating>4.9</PerformanceRating>
+      <YearsAtCompany>7</YearsAtCompany>
+      <OverTime>Yes</OverTime>
+      <AttritionRisk>Medium</AttritionRisk>
+    </Employee>
+  </Employees>
+</Company>
