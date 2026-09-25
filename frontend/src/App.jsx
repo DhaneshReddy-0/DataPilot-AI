@@ -13,7 +13,8 @@ import html2canvas from 'html2canvas';
 import { Sparkles, AlertCircle, CheckCircle2, TrendingUp, FileText, UploadCloud } from 'lucide-react';
 
 // Use direct backend port 5001 with fallback to relative path
-const API_BASE = 'http://localhost:5001';
+// Use environment variable for production, fallback to localhost for development
+const API_BASE = 'https://datapilot-ai-untl.onrender.com';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -32,16 +33,13 @@ export default function App() {
     setErrorMessage('');
     try {
       let res;
-      try {
-        res = await fetch(`${API_BASE}/api/samples/${sampleName}`, { method: 'POST' });
-      } catch (_) {
-        // Fallback to relative path if direct port fails
-        res = await fetch(`/api/samples/${sampleName}`, { method: 'POST' });
-      }
+      res = await fetch(`${API_BASE}/api/samples/${sampleName}`, { method: 'POST' });
 
       if (!res.ok) {
         const errText = await res.text();
-        throw new Error(errText || 'Failed to load sample dataset');
+        let errMsg = errText || 'Failed to load sample dataset';
+        try { const j = JSON.parse(errText); errMsg = j.error || errMsg; } catch(e){}
+        throw new Error(errMsg);
       }
       const data = await res.json();
       setDatasetPayload(data);
@@ -62,26 +60,19 @@ export default function App() {
     formData.append('file', file);
 
     try {
-      let res;
-      try {
-        res = await fetch(`${API_BASE}/api/upload`, {
-          method: 'POST',
-          body: formData
-        });
-      } catch (_) {
-        res = await fetch(`/api/upload`, {
-          method: 'POST',
-          body: formData
-        });
-      }
+      let res = await fetch(`${API_BASE}/api/upload`, {
+        method: 'POST',
+        body: formData
+      });
 
       if (!res.ok) {
         let errMsg = 'Failed to process file';
+        const errText = await res.text();
         try {
-          const errorData = await res.json();
+          const errorData = JSON.parse(errText);
           errMsg = errorData.error || errMsg;
         } catch (_) {
-          errMsg = await res.text();
+          errMsg = errText || errMsg;
         }
         throw new Error(errMsg);
       }

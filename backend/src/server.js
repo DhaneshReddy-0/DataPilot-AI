@@ -25,6 +25,16 @@ app.use(cors({
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
+// Friendly status route for backend root
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    service: 'DataPilot AI Backend API',
+    version: '1.0.0',
+    message: 'Backend server is active and running perfectly.'
+  });
+});
+
 // Multer storage in memory up to 50MB
 const upload = multer({
   storage: multer.memoryStorage(),
