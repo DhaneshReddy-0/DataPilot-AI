@@ -1,0 +1,37 @@
+--- frontend/src/App.jsx
++++ frontend/src/App.jsx
+@@ -41,10 +41,15 @@
+       }
+ 
+       if (!res.ok) {
+-        const errText = await res.text();
+-        throw new Error(errText || 'Failed to load sample dataset');
++        const errText = await res.text();
++        try {
++          const errJson = JSON.parse(errText);
++          throw new Error(errJson.error || 'Failed to load sample dataset');
++        } catch (e) {
++          throw new Error(errText || 'Failed to load sample dataset');
++        }
+       }
+-      const data = await res.json();
++      const data = await res.json();
+       setDatasetPayload(data);
+       setWhatIfResult(data.whatIf);
+       setIsUploadOpen(false);
+@@ -79,15 +84,13 @@
+ 
+       if (!res.ok) {
+         let errMsg = 'Failed to process file';
++        const errText = await res.text();
+         try {
+-          const errorData = await res.json();
+-          errMsg = errorData.error || errMsg;
++          const errorData = JSON.parse(errText);
++          errMsg = errorData.error || errMsg;
+         } catch (_) {
+-          errMsg = await res.text();
++          errMsg = errText || errMsg;
+         }
+         throw new Error(errMsg);
+       }
