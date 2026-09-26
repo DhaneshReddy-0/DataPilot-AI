@@ -153,17 +153,14 @@ export default function ForecastingTab({
                 ))}
               </div>
 
-              <select
-                value={method}
-                onChange={(e) => handleMethodChange(e.target.value)}
-                className="bg-white border border-slate-200 text-xs text-slate-900 rounded-xl px-3 py-1.5 focus:outline-none focus:border-cyan-500"
-              >
-                <option value="auto">Auto Model (Best Fit)</option>
-                <option value="polynomial">Random Forest Regressor</option>
-                <option value="exponential">Support Vector Machine</option>
-                <option value="linear">Linear Regression</option>
-                <option value="moving_average">K-Means Clustering</option>
-              </select>
+              <div className="bg-cyan-50 border border-cyan-200 text-xs text-slate-700 rounded-xl px-3 py-1.5 flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                </span>
+                <span className="font-semibold text-cyan-800">AutoML Selection:</span>
+                <span className="text-cyan-900 font-bold">{metrics.selectedModel || 'Best Fit Algorithm'}</span>
+              </div>
             </div>
           </div>
 

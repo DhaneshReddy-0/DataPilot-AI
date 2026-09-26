@@ -110,20 +110,29 @@ export function forecastTimeSeries(timeSeriesData, options = {}) {
   const recentWindow = values.slice(-windowSize);
   const maValue = recentWindow.reduce((a, b) => a + b, 0) / recentWindow.length;
 
+  const autoMlBenchmark = runAutoMLTournament(timeSeriesData, { targetKey, dateKey });
+  
   // Decide predictor function
   let predictorFn;
-  if (method === 'polynomial') {
+  let activeMethod = method;
+  
+  if (method === 'auto' && autoMlBenchmark && autoMlBenchmark.winnerType) {
+    activeMethod = autoMlBenchmark.winnerType;
+  }
+  
+  if (activeMethod === 'polynomial') {
     predictorFn = (idx) => Math.max(0, polyFn(idx));
-  } else if (method === 'exponential') {
+  } else if (activeMethod === 'exponential') {
     predictorFn = (idx) => {
       const step = idx - (n - 1);
       return Math.max(0, expLevel + step * expTrend);
     };
-  } else if (method === 'moving_average') {
+  } else if (activeMethod === 'moving_average') {
     predictorFn = (idx) => Math.max(0, maValue);
   } else {
     // Default Linear Regression
     predictorFn = (idx) => Math.max(0, linearFn(idx));
+    activeMethod = 'linear';
   }
 
   // Calculate Metrics on Historical Fit
@@ -187,8 +196,6 @@ export function forecastTimeSeries(timeSeriesData, options = {}) {
   const growth = Number((((nextVal - lastActual) / lastActual) * 100).toFixed(1));
 
   // AutoML Benchmark
-  const autoMlBenchmark = runAutoMLTournament(timeSeriesData, { targetKey, dateKey });
-
   return {
     combinedSeries: combinedData,
     futureForecasts,
@@ -200,7 +207,7 @@ export function forecastTimeSeries(timeSeriesData, options = {}) {
       stdError: Number(stdError.toFixed(2)),
       projectedGrowth: growth,
       confidenceLevel: '95%',
-      selectedModel: method
+      selectedModel: method === 'auto' ? autoMlBenchmark.winner : activeMethod
     }
   };
 }
