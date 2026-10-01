@@ -145,44 +145,79 @@ export function generateInsights(analysis, audit, data) {
  * Parses user questions in natural language and returns computed figures, filtered records, and chart hints.
  */
 export function answerDataQuestion(question, data, schema, analysis) {
-  const q = question.toLowerCase().trim();
-  const columns = Object.keys(schema);
-  const numericCols = columns.filter(c => schema[c].type === 'numeric');
-  const categoricalCols = columns.filter(c => schema[c].type === 'categorical' || schema[c].type === 'text');
+  const q = (question || '').toLowerCase().trim();
+  const safeSchema = (schema && typeof schema === 'object') ? schema : {};
+  let columns = Object.keys(safeSchema);
+  if (columns.length === 0 && data && data.length > 0) {
+    columns = Object.keys(data[0]);
+  }
 
-  // Question 1: Count / How many rows
-  if (q.includes('how many') || q.includes('total rows') || q.includes('record count') || q.includes('number of')) {
+  // Detect Numeric and Categorical columns safely
+  const numericCols = columns.filter(c => {
+    if (safeSchema[c]?.type === 'numeric' || safeSchema[c]?.type === 'number') return true;
+    const val = data.find(r => r && r[c] !== null && r[c] !== undefined)?.[c];
+    return typeof val === 'number' || (!isNaN(Number(val)) && val !== '' && typeof val !== 'boolean');
+  });
+  const categoricalCols = columns.filter(c => !numericCols.includes(c));
+
+  const safeAnalysis = (analysis && typeof analysis === 'object') ? analysis : {};
+  const primaryMetric = safeAnalysis.primaryColumns?.metric || numericCols[0] || columns[0] || 'Value';
+  const primaryCategory = safeAnalysis.primaryColumns?.category || categoricalCols[0] || columns[0] || 'Category';
+
+  // 1. Greetings & Capabilities
+  if (q === 'hi' || q === 'hello' || q === 'hey' || q.includes('who are you') || q.includes('what can you do') || q.includes('help')) {
     return {
-      answer: `The dataset contains a total of ${data.length.toLocaleString()} records across ${columns.length} columns.`,
+      answer: `Hello! I am your AI Data Analyst Agent. I analyze your dataset in real time. Ask me questions like: "What are the top 5 ${primaryCategory} by ${primaryMetric}?", "What is the average ${primaryMetric}?", or "How many records are there?".`,
       type: 'metric',
-      data: [{ metric: 'Total Records', value: data.length }]
+      data: [
+        { metric: 'Total Records', value: data.length },
+        { metric: 'Primary Category', value: primaryCategory },
+        { metric: 'Primary Metric', value: primaryMetric }
+      ]
     };
   }
 
-  // Question 2: Top N entities by metric (e.g. "top 5 products by sales", "highest profit")
-  const topMatch = q.match(/top\s*(\d+)/i) || (q.includes('highest') || q.includes('best') ? [null, '5'] : null);
+  // 2. Count / How many rows
+  if (q.includes('how many') || q.includes('total rows') || q.includes('record count') || q.includes('number of') || q.includes('total records') || q.includes('size')) {
+    return {
+      answer: `The dataset contains a total of ${data.length.toLocaleString()} records across ${columns.length} columns (${numericCols.length} numerical metrics and ${categoricalCols.length} categorical attributes).`,
+      type: 'metric',
+      data: [
+        { metric: 'Total Records', value: data.length },
+        { metric: 'Total Columns', value: columns.length },
+        { metric: 'Numeric Columns', value: numericCols.length }
+      ]
+    };
+  }
+
+  // 3. Top N or Bottom N entities by metric
+  const isBottom = q.includes('bottom') || q.includes('lowest') || q.includes('worst') || q.includes('least');
+  const topMatch = q.match(/(?:top|bottom|lowest|highest|best|worst)\s*(\d+)/i) || 
+                   (q.includes('top') || isBottom || q.includes('highest') || q.includes('best') ? [null, '5'] : null);
   if (topMatch) {
-    const limit = parseInt(topMatch[1], 10) || 5;
-    const targetMetric = numericCols.find(c => q.includes(c.toLowerCase())) || analysis.primaryColumns.metric;
-    const targetCategory = categoricalCols.find(c => q.includes(c.toLowerCase())) || analysis.primaryColumns.category;
+    const limit = Math.min(25, Math.max(1, parseInt(topMatch[1], 10) || 5));
+    const targetMetric = numericCols.find(c => q.includes(c.toLowerCase())) || primaryMetric;
+    const targetCategory = categoricalCols.find(c => q.includes(c.toLowerCase())) || primaryCategory;
 
     if (targetMetric && targetCategory) {
       const grouped = {};
       for (const row of data) {
-        const cat = String(row[targetCategory] || 'Unknown');
-        const val = parseFloat(row[targetMetric]) || 0;
+        const cat = String(row[targetCategory] ?? 'Unknown');
+        const raw = row[targetMetric];
+        const val = typeof raw === 'number' ? raw : (parseFloat(String(raw).replace(/[$,%]/g, '')) || 0);
         grouped[cat] = (grouped[cat] || 0) + val;
       }
       const sorted = Object.entries(grouped)
         .map(([name, total]) => ({ [targetCategory]: name, [targetMetric]: Number(total.toFixed(2)) }))
-        .sort((a, b) => b[targetMetric] - a[targetMetric])
+        .sort((a, b) => isBottom ? a[targetMetric] - b[targetMetric] : b[targetMetric] - a[targetMetric])
         .slice(0, limit);
 
-      const topName = sorted[0]?.[targetCategory];
-      const topVal = sorted[0]?.[targetMetric];
+      const topName = sorted[0]?.[targetCategory] || 'N/A';
+      const topVal = sorted[0]?.[targetMetric] ?? 0;
+      const rankWord = isBottom ? 'bottom' : 'top';
 
       return {
-        answer: `The top ${limit} ${targetCategory}s by ${targetMetric} are led by "${topName}" with ${topVal?.toLocaleString()}.`,
+        answer: `The ${rankWord} ${limit} ${targetCategory}s by ${targetMetric} are led by "${topName}" with ${topVal.toLocaleString()}.`,
         type: 'table_and_chart',
         chartType: 'BarChart',
         xAxis: targetCategory,
@@ -192,55 +227,80 @@ export function answerDataQuestion(question, data, schema, analysis) {
     }
   }
 
-  // Question 3: Average / Mean of a column
-  if (q.includes('average') || q.includes('mean')) {
-    const foundCol = numericCols.find(c => q.includes(c.toLowerCase()));
-    if (foundCol && analysis.descriptiveStats[foundCol]) {
-      const stats = analysis.descriptiveStats[foundCol];
+  // 4. Average / Mean / Median
+  if (q.includes('average') || q.includes('mean') || q.includes('median')) {
+    const targetMetric = numericCols.find(c => q.includes(c.toLowerCase())) || primaryMetric;
+    const values = data.map(r => {
+      const raw = r[targetMetric];
+      return typeof raw === 'number' ? raw : parseFloat(String(raw).replace(/[$,%]/g, ''));
+    }).filter(v => typeof v === 'number' && !isNaN(v)).sort((a, b) => a - b);
+
+    if (values.length > 0) {
+      const sum = values.reduce((a, b) => a + b, 0);
+      const mean = sum / values.length;
+      const median = values[Math.floor(values.length / 2)];
       return {
-        answer: `The average (mean) ${foundCol} is ${stats.mean.toLocaleString()} (with a median of ${stats.median.toLocaleString()} and standard deviation of ${stats.stdDev.toLocaleString()}).`,
+        answer: `For ${targetMetric}: The average (mean) is ${Number(mean.toFixed(2)).toLocaleString()}, with a median of ${Number(median.toFixed(2)).toLocaleString()} across ${values.length.toLocaleString()} valid entries.`,
         type: 'metric',
-        data: [{ metric: `Average ${foundCol}`, value: stats.mean }, { metric: `Median ${foundCol}`, value: stats.median }]
+        data: [
+          { metric: `Average ${targetMetric}`, value: Number(mean.toFixed(2)) },
+          { metric: `Median ${targetMetric}`, value: Number(median.toFixed(2)) },
+          { metric: 'Total Sum', value: Number(sum.toFixed(2)) }
+        ]
       };
     }
   }
 
-  // Question 4: Maximum / Minimum
-  if (q.includes('maximum') || q.includes('max') || q.includes('highest')) {
-    const foundCol = numericCols.find(c => q.includes(c.toLowerCase()));
-    if (foundCol && analysis.descriptiveStats[foundCol]) {
-      const stats = analysis.descriptiveStats[foundCol];
+  // 5. Maximum / Minimum
+  if (q.includes('maximum') || q.includes('max') || q.includes('highest') || q.includes('minimum') || q.includes('min') || q.includes('lowest')) {
+    const targetMetric = numericCols.find(c => q.includes(c.toLowerCase())) || primaryMetric;
+    const values = data.map(r => {
+      const raw = r[targetMetric];
+      return typeof raw === 'number' ? raw : parseFloat(String(raw).replace(/[$,%]/g, ''));
+    }).filter(v => typeof v === 'number' && !isNaN(v));
+
+    if (values.length > 0) {
+      const max = Math.max(...values);
+      const min = Math.min(...values);
       return {
-        answer: `The maximum recorded ${foundCol} is ${stats.max.toLocaleString()}, while the minimum is ${stats.min.toLocaleString()}.`,
+        answer: `For ${targetMetric}: The maximum recorded value is ${Number(max.toFixed(2)).toLocaleString()}, and the minimum recorded value is ${Number(min.toFixed(2)).toLocaleString()}.`,
         type: 'metric',
-        data: [{ metric: `Maximum ${foundCol}`, value: stats.max }, { metric: `Minimum ${foundCol}`, value: stats.min }]
+        data: [
+          { metric: `Maximum ${targetMetric}`, value: Number(max.toFixed(2)) },
+          { metric: `Minimum ${targetMetric}`, value: Number(min.toFixed(2)) }
+        ]
       };
     }
   }
 
-  // Question 5: Outliers / Anomalies
+  // 6. Outliers / Anomalies
   if (q.includes('outlier') || q.includes('anomal')) {
-    const foundCol = numericCols.find(c => q.includes(c.toLowerCase())) || analysis.primaryColumns.metric;
-    if (foundCol && analysis.outliers[foundCol]) {
-      const o = analysis.outliers[foundCol];
+    const targetMetric = numericCols.find(c => q.includes(c.toLowerCase())) || primaryMetric;
+    if (safeAnalysis.outliers && safeAnalysis.outliers[targetMetric]) {
+      const o = safeAnalysis.outliers[targetMetric];
       return {
-        answer: `Found ${o.count} statistical outliers in ${foundCol} (${o.percentage}% of records) lying beyond bounds [${o.lowerBound} to ${o.upperBound}].`,
-        type: 'list',
-        data: o.sampleOutliers.map((val, i) => ({ id: i + 1, outlierValue: val }))
+        answer: `Found ${o.count} statistical outliers in ${targetMetric} (${o.percentage}% of records) lying beyond expected bounds [${o.lowerBound} to ${o.upperBound}].`,
+        type: 'metric',
+        data: [
+          { metric: 'Outlier Count', value: o.count },
+          { metric: 'Outlier %', value: `${o.percentage}%` },
+          { metric: 'Lower Bound', value: o.lowerBound },
+          { metric: 'Upper Bound', value: o.upperBound }
+        ]
       };
     }
   }
 
-  // Question 6: Filter by category value (e.g. "sales in West", "technology category")
+  // 7. Filter by category match
   for (const col of categoricalCols) {
     for (const row of data.slice(0, 100)) {
       const val = String(row[col] || '').toLowerCase();
       if (val.length > 2 && q.includes(val)) {
         const filtered = data.filter(r => String(r[col] || '').toLowerCase() === val);
-        const metricCol = analysis.primaryColumns.metric;
-        const total = filtered.reduce((acc, curr) => acc + (parseFloat(curr[metricCol]) || 0), 0);
+        const metricCol = primaryMetric;
+        const total = filtered.reduce((acc, curr) => acc + (parseFloat(String(curr[metricCol]).replace(/[$,%]/g, '')) || 0), 0);
         return {
-          answer: `Found ${filtered.length} records matching "${val}" in ${col}. Total ${metricCol || 'sum'}: ${total.toLocaleString()}.`,
+          answer: `Found ${filtered.length.toLocaleString()} records matching "${val}" in ${col}. Total ${metricCol}: ${Number(total.toFixed(2)).toLocaleString()}.`,
           type: 'table',
           data: filtered.slice(0, 10)
         };
@@ -248,10 +308,18 @@ export function answerDataQuestion(question, data, schema, analysis) {
     }
   }
 
-  // General Fallback
+  // 8. General Comprehensive Fallback
+  const summaryMetric = primaryMetric;
+  const values = data.map(r => parseFloat(String(r[summaryMetric]).replace(/[$,%]/g, ''))).filter(v => typeof v === 'number' && !isNaN(v));
+  const avg = values.length > 0 ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(2) : 'N/A';
+
   return {
-    answer: `Here is a summary of ${analysis.primaryColumns.metric || 'primary metrics'} based on your query: Overall mean is ${analysis.descriptiveStats[analysis.primaryColumns.metric]?.mean || 'N/A'}, across ${data.length} records. Try asking "Top 5 products by sales", "Average profit", or "How many records are there?".`,
-    type: 'general',
-    data: Object.entries(analysis.descriptiveStats).slice(0, 4).map(([col, s]) => ({ column: col, mean: s.mean, sum: s.sum }))
+    answer: `Analysis for "${question}": Processed across ${data.length.toLocaleString()} records. Primary metric is "${summaryMetric}" with an overall average of ${avg}. Try asking: "Top 5 ${primaryCategory} by ${primaryMetric}", "What is the average ${primaryMetric}?", or "Show maximum ${primaryMetric}".`,
+    type: 'metric',
+    data: [
+      { metric: 'Target Metric', value: summaryMetric },
+      { metric: 'Average Value', value: avg },
+      { metric: 'Total Records', value: data.length }
+    ]
   };
 }
